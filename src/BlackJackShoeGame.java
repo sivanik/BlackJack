@@ -39,7 +39,7 @@ public class BlackJackShoeGame {
         System.out.println("         Dealer must stand on all 17");
         System.out.println("         Insurance pays 2 to 1");
         System.out.println("         If the Player bets zero chips it implies they are opting out of the game and the game ends!!!");
-        System.out.println("*****************************************************");
+        System.out.println("******************************************************");
 
         BlackJackShoeGame blackJackShoeGame = new BlackJackShoeGame();
 
