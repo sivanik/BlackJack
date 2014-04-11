@@ -1,14 +1,8 @@
-//import sun.org.mozilla.javascript.ast.IfStatement;
-
 import java.io.BufferedReader;
-//import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-//import java.lang.reflect.Array;
 import java.util.ArrayList;
-//import java.util.Collection;
 import java.util.Collections;
-import java.util.Objects;
 
 /**
  * Created by sivani on 4/5/14.
@@ -20,41 +14,34 @@ public class BlackJackShoeGameAdvanced {
     private int playerTotal;
     private int dealerTotal;
     private boolean playerBusted;
-    private boolean playerHasAce = false;
     private int numOfAce = 0;
 
     private ArrayList cardsToBeDealt;
-    private ArrayList playerCards;
-    private ArrayList dealerCards;
-    private int playerBet;
+    public ArrayList playerCards;
+    public ArrayList dealerCards;
+    public int playerBet;
     private double playerChips = 100;
-    private boolean doubleDown;
-    private boolean playerWins;
+    //private boolean doubleDown;
 
 
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
 
         BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("***************Casino Rules for BlackJack Table************");
+        System.out.println("***************Casino Rules for BlackJack Table***********************************************************");
         System.out.println("         BLACKJACK pays 3 to 2");
         System.out.println("         Dealer must stand on all 17");
-        System.out.println("         Insurance pays 2 to 1");
         System.out.println("         If the Player bets zero chips it implies they are opting out of the game and the game ends!!!");
-        System.out.println("         Player can only DOUBLE, SURRENDER and SPLIT when they have two cards.");
-        System.out.println("*****************************************************");
+        System.out.println("         If the Player enters invalid input(space/enter/non numeric characters) twice in a row, the game exits!!!");
+        System.out.println("         Player can only DOUBLE and SURRENDER when they have two cards.");
+        System.out.println("**********************************************************************************************************");
 
         BlackJackShoeGameAdvanced blackJackShoeGame = new BlackJackShoeGameAdvanced();
 
 
         int totalNumOfDecks = 1;
 
-        //ArrayList cardsInHand = blackJackShoeGame.populateCards(totalNumOfDecks);
-
-        //System.out.println(cardsInHand);
-
-        while(blackJackShoeGame.playerChips>0) {
+        while(blackJackShoeGame.playerChips>0) {//Player can play as long as they have more than one chip in hand.
 
             ArrayList cardsInHand = blackJackShoeGame.populateCards(totalNumOfDecks);
             System.out.println("Decks in hand!! ");
@@ -64,13 +51,12 @@ public class BlackJackShoeGameAdvanced {
 
             ArrayList cardsShuffled;
             cardsShuffled = blackJackShoeGame.shuffleCards(cardsInHand);
-            //System.out.println(cardsShuffled);
 
 
             do { //Repeat until player places a valid bet (positive integer in multiples of 2)
                 System.out.println("Available chips for the player : " + blackJackShoeGame.playerChips);
                 System.out.println("Please place your bets (multiples of 2 only):");
-                blackJackShoeGame.playerBet = Integer.parseInt(bufferRead.readLine());
+                blackJackShoeGame.playerBet = getUserInput(bufferRead,1);
 
                 if (blackJackShoeGame.playerBet % 2 == 0 && blackJackShoeGame.playerBet > 0){
                     break;
@@ -92,29 +78,28 @@ public class BlackJackShoeGameAdvanced {
 
 
             blackJackShoeGame.dealCards(cardsShuffled);
-            System.out.println("Players cards : " + blackJackShoeGame.playerCards.get(0).toString() + " " + blackJackShoeGame.playerCards.get(1).toString());
+            System.out.println("Player's cards : " + blackJackShoeGame.playerCards.get(0).toString() + " " + blackJackShoeGame.playerCards.get(1).toString());
             System.out.println("-----------------------------------");
-            System.out.println("Dealers cards : " + blackJackShoeGame.dealerCards.get(0).toString() + " " + " ** ");
+            System.out.println("Dealer's cards : " + blackJackShoeGame.dealerCards.get(0).toString() + " " + " ** ");
             System.out.println("-----------------------------------");
-            int playerOption;
-
-            //blackJackShoeGame.playerOptions();
+            int playerOption=0;
 
 
-            do {
-                if(blackJackShoeGame.playerCards.size()==2) {
+
+            do {//Repeat till player chooses to stand or the player goes bust.
+                if (blackJackShoeGame.playerCards.size() == 2) {
                     System.out.println("Players Options: 1.Stand  2.Hit  3.Surrender 4.DoubleDown [Enter the corresponding number]:");
-                }else{
+                }
+                else {
                     System.out.println("Players Options: 1.Stand  2.Hit [Enter the corresponding number]:");
                 }
+                playerOption = getUserInput(bufferRead,1);
 
-                playerOption = Integer.parseInt(bufferRead.readLine());
 
                 switch (playerOption) {
                     case 1:
                         System.out.println("Player Stands");
                         blackJackShoeGame.standCards();
-                        //blackJackShoeGame.dealersTurn();
                         break;
                     case 2:
                         System.out.println("Player Hits");
@@ -136,13 +121,19 @@ public class BlackJackShoeGameAdvanced {
                         }
                     case 4:
                         if(blackJackShoeGame.playerCards.size()==2) {
-                            blackJackShoeGame.doubleDown = true;
+                            //blackJackShoeGame.doubleDown = true;
 
                             System.out.println("Player opts for DoubleDown");
-                            System.out.println("Please place your bet for Double Down (Enter number of chips between 0 to "+blackJackShoeGame.playerBet+" ): ");
-
-                            int doubleDownBet = Integer.parseInt(bufferRead.readLine());
-                            blackJackShoeGame.playerDoubleDown(doubleDownBet);
+                            int doubleDownBet = 0;
+                            do {
+                                System.out.println("Please place your bet for Double Down (Enter number of chips between 0 to " + blackJackShoeGame.playerBet + " ): ");
+                                doubleDownBet = getUserInput(bufferRead,1);
+                                if(doubleDownBet<=blackJackShoeGame.playerBet) {
+                                    blackJackShoeGame.playerDoubleDown(doubleDownBet);
+                                }else{
+                                    System.out.println("Cannot place bet higher than original bet.");
+                                }
+                            }while(doubleDownBet<= blackJackShoeGame.playerBet);
                             break;
                         }else{
                             System.out.println("Invaild Option! Cannot Double Down after taking 3rd card.");
@@ -154,7 +145,7 @@ public class BlackJackShoeGameAdvanced {
                         break;
                 }
 
-            } while (playerOption != 1 && playerOption != 2 && playerOption != 3 && playerOption != 4);
+            } while (playerOption != 1 && playerOption != 2 && playerOption != 3 && playerOption != 4 );
 
             if(blackJackShoeGame.playerChips == 0){
                 System.out.println("Player has run out of chips");
@@ -166,6 +157,7 @@ public class BlackJackShoeGameAdvanced {
 
     }
 
+    //Populating 52 cards of a card
     public ArrayList populateCards(int totalNumOfDecks) {
 
         int numOfCards = 0;
@@ -189,6 +181,7 @@ public class BlackJackShoeGameAdvanced {
 
     }
 
+    //shuffling the the deck
     public ArrayList shuffleCards(ArrayList cardsRandom) {
 
         Collections.shuffle(cardsRandom);
@@ -196,9 +189,10 @@ public class BlackJackShoeGameAdvanced {
         return cardsRandom;
     }
 
+    //Dealing the first two cards to both the player and the dealer
     public void dealCards(ArrayList cardsInBox) {
 
-        cardsInBox.remove(0);//burning the beginning card.can be placed in main?
+        cardsInBox.remove(0);//burning the beginning card.
 
         dealerCards = new ArrayList();
         playerCards = new ArrayList();
@@ -213,6 +207,7 @@ public class BlackJackShoeGameAdvanced {
         return;
     }
 
+    //To calculate the final total of the players cards and start the dealers turn
     public void standCards(){
 
         if(this.playerTotal == 0) {
@@ -235,6 +230,7 @@ public class BlackJackShoeGameAdvanced {
         dealersTurn();
     }
 
+    //Cards to be dealt to dealer till the total of the cards reach 17 or above
     public void dealersTurn(){
 
         dealerTotal = 0;
@@ -244,26 +240,20 @@ public class BlackJackShoeGameAdvanced {
 
         do {
 
-            for(Object cardObj: dealerCards){
+            for(Object cardObj: dealerCards) {
                 Card dealerCard = (Card) cardObj;
                 int tempValue = dealerCard.cardValuation();
-                //System.out.println(" "+ tempValue);
                 if (tempValue == 1) {
-                    cardIsAce = true;
                     numOfAces++;
                     tempValue = 11;
                 }
                 dealerTotal = dealerTotal + tempValue;
-                //System.out.println(dealerTotal + " " + cardIsAce);
-                if(numOfAces > 0){
+                if (numOfAces > 0) {
                     numOfAces--;
-                    if(dealerTotal>=17 && dealerTotal<=21 ){
-                        dealAgain=false;
-                        cardIsAce = false;
+                    if (dealerTotal >= 17 && dealerTotal <= 21) {
+                        dealAgain = false;
                         break;
-                    }
-                    else if (dealerTotal > 21) {
-                        cardIsAce = false;
+                    } else if (dealerTotal > 21) {
                         dealerTotal = dealerTotal - 10;
                         if (dealerTotal >= 17 && dealerTotal <= 21) {
                             dealAgain = false;
@@ -271,41 +261,23 @@ public class BlackJackShoeGameAdvanced {
                         }
                     }
 
-                }else{
-                    if(((dealerTotal >= 17 && dealerTotal <= 21) || dealerTotal>21)){
+                } else {
+                    if (((dealerTotal >= 17 && dealerTotal <= 21) || dealerTotal > 21)) {
                         dealAgain = false;
                         break;
                     }
 
                 }
-                /*if(dealerTotal>=17 && dealerTotal<=21 && cardIsAce){
-                    dealAgain=false;
-                    cardIsAce = false;
-                    break;
-                }
-                else if (dealerTotal > 21 && cardIsAce) {
-                    cardIsAce = false;
-                    dealerTotal = dealerTotal - 10;
-                    if (dealerTotal >= 17 && dealerTotal <= 21) {
-                        dealAgain = false;
-                        break;
-                    }
-                } else if(((dealerTotal >= 17 && dealerTotal <= 21)
-                        || dealerTotal>21)
-                        && !cardIsAce)            {
-                    dealAgain = false;
-                    break;
-                }*/
             }
 
-            if(dealAgain) {
+            if (dealAgain) {
                 dealerCards.add(cardsToBeDealt.remove(0));
                 dealerTotal = 0;
             }
 
         } while(dealAgain);
 
-        System.out.println("Dealers cards!!");
+        System.out.println("Dealer's cards!!");
         System.out.println("-----------------------------");
         for (Object cardObj : dealerCards){
             System.out.print(" "+cardObj.toString());
@@ -315,6 +287,7 @@ public class BlackJackShoeGameAdvanced {
         endResult();
     }
 
+    //To calculate player bet and compare the totals of the player and dealer for different scenarios.
     private void endResult(){
         if(playerTotal == 21 && dealerTotal == 21){
             if((playerCards.size()==2 && dealerCards.size()==2) || (playerCards.size()>2 && dealerCards.size()>2)){
@@ -322,7 +295,7 @@ public class BlackJackShoeGameAdvanced {
             }
             else if(playerCards.size()==2 && dealerCards.size() >2){
                 System.out.println("BlackJack for Player!! Player wins!");
-                playerBet = (playerBet*3)/2;
+                playerBet = playerBet + (playerBet*3)/2;
             }
             else if(playerCards.size()>2 && dealerCards.size()==2){
                 System.out.println("BlackJack for Dealer!! Player looses");
@@ -338,12 +311,12 @@ public class BlackJackShoeGameAdvanced {
             playerBet = 0;
         }
         else if(playerTotal<21 && dealerTotal<21 && dealerTotal == playerTotal) {
-            System.out.println("PUSH!!");
+            System.out.println("Push!!");
         }
         else if(playerTotal == 21 && dealerTotal != 21 ){
             if(playerCards.size()==2){
                 System.out.println("BlackJack for Player!! Player wins!");
-                playerBet = (playerBet*3)/2;
+                playerBet = playerBet+(playerBet*3)/2;
             }
             else {
                 System.out.println("Player wins!!");
@@ -362,7 +335,7 @@ public class BlackJackShoeGameAdvanced {
         else if(playerTotal>21 && dealerTotal>21){
             System.out.println(playerTotal +" " + dealerTotal);
             System.out.println("Both Dealer and Player go bust");
-            playerBet = 0;//doubtful
+            playerBet = 0;
         }
         else if(playerTotal>21 && dealerTotal<21){
             System.out.println("Dealer Wins!!");
@@ -378,11 +351,12 @@ public class BlackJackShoeGameAdvanced {
 
     }
 
+    //dealing a card to the player when they opt to hit and checking if the player goes bust.If busted automatically its the dealer turn.
     public void hitCards() {
         playerCards.add(cardsToBeDealt.remove(0));
 
-        System.out.println("Players cards");
-        System.out.println("-------------------------------------: ");
+        System.out.println("Player's cards");
+        System.out.println("------------------------------------- ");
 
         for (Object cardObj : playerCards){
             System.out.print(" "+cardObj.toString());
@@ -393,57 +367,51 @@ public class BlackJackShoeGameAdvanced {
         if(playerBusted){
             System.out.println("Player busted!! Dealer's turn!");
             dealersTurn();
-            //playerBusted = false;
         }
     }
 
+    //checking if the player has busted.
     private boolean checkPlayerBusted(){
 
         boolean playerOver21 = false;
         playerTotal=0;
-        boolean cardIsAce = false;
         numOfAce= 0;
 
         for (Object cardObj : playerCards){
             Card playerCard = (Card) cardObj;
             int tempValue = playerCard.cardValuation();
-            //System.out.println(tempValue);
             if(tempValue == 1){
                 tempValue = 11;
-                cardIsAce = true;
                 numOfAce++;
             }
             playerTotal = playerTotal + tempValue;
-            System.out.println(playerTotal + " " +cardIsAce + numOfAce);
-            if(playerTotal>21 && cardIsAce){
-                if(numOfAce>1) {
-                    playerTotal = playerTotal - (10 * numOfAce);
-                    numOfAce=0;
-                }else {
-                    playerTotal = playerTotal - 10;
+
+            if(numOfAce>0){
+                if(playerTotal>21){
+                    playerTotal = playerTotal -10;
+                    numOfAce--;
+                    if(playerTotal>21){
+                        playerOver21 = true;
+                    }
                 }
-                cardIsAce=false;
+            }
+            else{
                 if(playerTotal>21){
                     playerOver21 = true;
                 }
             }
-            if(playerTotal>21 && !cardIsAce){
-                playerOver21 = true;
-            }
-
-            System.out.println(playerTotal + " " +cardIsAce);
-            //isAce = false;
         }
-        //System.out.println("" + playerTotal);
         return playerOver21;
     }
 
+    //subtracting the placed bet from the total number of chips.
     public void placeBetsInCircle(int bet){
 
         playerChips = playerChips - bet;
 
     }
 
+    //When the player surrenders the player is no longer dealt any hands, but loses only half of his bet.
     public void playerSurrender(){
 
         playerBet = playerBet/2;
@@ -451,17 +419,18 @@ public class BlackJackShoeGameAdvanced {
         System.out.println("Player receives half of original bet");
     }
 
+    //when the player opts for double down then the player is dealt just one more hand and then dealer's cards are revealed.
     public void playerDoubleDown(int doubleDownBet){
 
         playerCards.add(cardsToBeDealt.remove(0));
         placeBetsInCircle(doubleDownBet);
         playerBet = playerBet+doubleDownBet;
-        System.out.println(playerBet+ " " + playerChips);
+        //System.out.println(playerBet+ " " + playerChips);
         int numOfAces = 0;
 
         playerTotal = 0;
-        System.out.println("Players cards");
-        System.out.println("-------------------------------------: ");
+        System.out.println("Player's cards");
+        System.out.println("------------------------------------- ");
         for(Object cardObject : playerCards){
 
             Card playerCard = (Card)cardObject;
@@ -485,9 +454,40 @@ public class BlackJackShoeGameAdvanced {
         }
 
 
-        System.out.println("-------------------------------------: ");
+        System.out.println("");System.out.println("------------------------------------- ");
 
         dealersTurn();
 
     }
+
+    //Get user Input from console.
+    public static int getUserInput(BufferedReader bufferRead, int numTries){
+        int intInput = -1;
+        if (numTries <= 2) {
+            try{
+                String strInput = bufferRead.readLine();
+                try {
+                    intInput = Integer.parseInt(strInput);
+                }
+                catch (NumberFormatException nfe){
+                    //Give user 2 tries
+                    System.out.println("Invalid input "+strInput+". Please enter numbers only");
+                    numTries++;
+                    intInput = getUserInput(bufferRead,numTries);
+                }
+            }
+            catch (IOException e){
+                System.out.println("Error parsing player input. Game will exit now");
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        else{
+            System.out.println("Invalid input received. Game will exit now");
+            System.exit(2);
+        }
+        return intInput;
+    }
 }
+
+
