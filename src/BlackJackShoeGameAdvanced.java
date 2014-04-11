@@ -21,20 +21,19 @@ public class BlackJackShoeGameAdvanced {
     public ArrayList dealerCards;
     public int playerBet;
     private double playerChips = 100;
-    //private boolean doubleDown;
 
 
     public static void main(String[] args){
 
         BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
 
-        System.out.println("***************Casino Rules for BlackJack Table***********************************************************");
+        System.out.println("***************Casino Rules for BlackJack Table***************************************************************************");
         System.out.println("         BLACKJACK pays 3 to 2");
         System.out.println("         Dealer must stand on all 17");
+        System.out.println("         Player can only DOUBLE,SURRENDER or SPLIT when they have two cards.");
         System.out.println("         If the Player bets zero chips it implies they are opting out of the game and the game ends!!!");
         System.out.println("         If the Player enters invalid input(space/enter/non numeric characters) twice in a row, the game exits!!!");
-        System.out.println("         Player can only DOUBLE and SURRENDER when they have two cards.");
-        System.out.println("**********************************************************************************************************");
+        System.out.println("**************************************************************************************************************************");
 
         BlackJackShoeGameAdvanced blackJackShoeGame = new BlackJackShoeGameAdvanced();
 
@@ -88,7 +87,7 @@ public class BlackJackShoeGameAdvanced {
 
             do {//Repeat till player chooses to stand or the player goes bust.
                 if (blackJackShoeGame.playerCards.size() == 2) {
-                    System.out.println("Players Options: 1.Stand  2.Hit  3.Surrender 4.DoubleDown [Enter the corresponding number]:");
+                    System.out.println("Players Options: 1.Stand  2.Hit  3.Surrender 4.DoubleDown 5.Splitting[Enter the corresponding number]:");
                 }
                 else {
                     System.out.println("Players Options: 1.Stand  2.Hit [Enter the corresponding number]:");
@@ -130,13 +129,43 @@ public class BlackJackShoeGameAdvanced {
                                 doubleDownBet = getUserInput(bufferRead,1);
                                 if(doubleDownBet<=blackJackShoeGame.playerBet) {
                                     blackJackShoeGame.playerDoubleDown(doubleDownBet);
+                                    break;
                                 }else{
                                     System.out.println("Cannot place bet higher than original bet.");
+                                    playerOption = -1;
                                 }
-                            }while(doubleDownBet<= blackJackShoeGame.playerBet);
+                            }while(doubleDownBet>blackJackShoeGame.playerBet);
                             break;
                         }else{
                             System.out.println("Invaild Option! Cannot Double Down after taking 3rd card.");
+                            playerOption = -1;
+                            break;
+                        }
+                    case 5:
+                        if(blackJackShoeGame.playerCards.size()==2) {
+
+                            Card firstHand = (Card) blackJackShoeGame.playerCards.get(0);
+                            Card secondHand = (Card) blackJackShoeGame.playerCards.get(1);
+                            if(firstHand.getHandValue() == secondHand.getHandValue()) {
+
+                                int splitBet = blackJackShoeGame.playerBet;
+                                blackJackShoeGame.placeBetsInCircle(splitBet);
+
+                                System.out.println("Player opts to split!");
+                                System.out.println("First game after Player split");
+                                blackJackShoeGame.splitGame(firstHand);
+
+                                blackJackShoeGame.playerBet = splitBet;
+                                System.out.println("Second game after Player split");
+                                blackJackShoeGame.splitGame(secondHand);
+                                break;
+                            }else{
+                                System.out.println("Cannot split on unequal cards");
+                                playerOption = -1;
+                                break;
+                            }
+                        }else{
+                            System.out.println("Invaild Option! Cannot split after taking 3rd card.");
                             playerOption = -1;
                             break;
                         }
@@ -145,9 +174,9 @@ public class BlackJackShoeGameAdvanced {
                         break;
                 }
 
-            } while (playerOption != 1 && playerOption != 2 && playerOption != 3 && playerOption != 4 );
+            } while (playerOption != 1 && playerOption != 2 && playerOption != 3 && playerOption != 4 && playerOption!=5);
 
-            if(blackJackShoeGame.playerChips == 0){
+            if(blackJackShoeGame.playerChips <2){
                 System.out.println("Player has run out of chips");
                 break;
             }
@@ -234,7 +263,6 @@ public class BlackJackShoeGameAdvanced {
     public void dealersTurn(){
 
         dealerTotal = 0;
-        boolean cardIsAce = false;
         boolean dealAgain = true;
         int numOfAces = 0;
 
@@ -487,6 +515,75 @@ public class BlackJackShoeGameAdvanced {
             System.exit(2);
         }
         return intInput;
+    }
+
+    //The game after splitting takes place
+    private void splitGame(Card firstCard){
+
+        playerCards.clear();
+        playerCards.add(0,firstCard);
+        playerCards.add(1,cardsToBeDealt.remove(0));
+
+        System.out.println("-----------------------------------");
+        System.out.println("Player's cards : " + playerCards.get(0).toString() + " " + playerCards.get(1).toString());
+        System.out.println("-----------------------------------");
+
+        BufferedReader bufferRead = new BufferedReader(new InputStreamReader(System.in));
+        int playerOption = 0;
+        boolean splitGamePlayerBusted = false;
+
+        do {//Repeat till player chooses to stand or the player goes bust.
+            if (playerCards.size() == 2) {
+                System.out.println("Players Options: 1.Stand  2.Hit 3.DoubleDown [Enter the corresponding number]:");
+            }
+            else {
+                System.out.println("Players Options: 1.Stand  2.Hit [Enter the corresponding number]:");
+            }
+            playerOption = getUserInput(bufferRead,1);
+
+
+            switch (playerOption) {
+                case 1:
+                    System.out.println("Player Stands");
+                    standCards();
+                    break;
+                case 2:
+                    System.out.println("Player Hits");
+                    hitCards();
+                    if (!splitGamePlayerBusted) {
+                        playerOption = -1;
+                        splitGamePlayerBusted = false;
+                    }// blackJackShoeGame.dealersTurn();
+                    break;
+                case 3:
+                    if(playerCards.size()==2) {
+                        //blackJackShoeGame.doubleDown = true;
+
+                        System.out.println("Player opts for DoubleDown");
+                        int doubleDownBet = 0;
+                        do {
+                            System.out.println("Please place your bet for Double Down (Enter number of chips between 0 to " + playerBet + " ): ");
+                            doubleDownBet = getUserInput(bufferRead,1);
+                            if(doubleDownBet<=playerBet) {
+                               playerDoubleDown(doubleDownBet);
+                            }else{
+                                System.out.println("Cannot place bet higher than original bet.");
+                            }
+                        }while(doubleDownBet<= playerBet);
+                        break;
+                    }else{
+                        System.out.println("Invaild Option! Cannot Double Down after taking 3rd card.");
+                        playerOption = -1;
+                        break;
+                    }
+                default:
+                    System.out.println("Please enter Again ");
+                    break;
+            }
+
+        } while (playerOption != 1 && playerOption != 2 && playerOption != 3);
+
+
     }
 }
 
